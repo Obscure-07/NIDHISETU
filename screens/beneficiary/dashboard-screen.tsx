@@ -54,12 +54,14 @@ export const BeneficiaryDashboardScreen = () => {
   };
 
   return (
-    <ScrollView 
+    <ScrollView
       style={[styles.screen, { backgroundColor: theme.colors.background }]}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, { padding: theme.spacing.lg }]}
       accessibilityLabel="Beneficiary dashboard"
     >
-      <View style={styles.headerSection}>
+      <View style={[styles.headerSection, { gap: theme.spacing.lg }]}
+        accessibilityRole="summary"
+      >
         <DashboardHeader
           name={headerProfile?.name ?? 'Beneficiary'}
           role={headerProfile?.role ?? 'beneficiary'}
@@ -78,14 +80,32 @@ export const BeneficiaryDashboardScreen = () => {
           </View>
         ) : null}
 
-        <View style={[styles.card, { backgroundColor: theme.colors.card }]}>
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: theme.colors.card,
+              borderColor: theme.colors.border,
+            },
+          ]}
+        >
             <VerificationProgress percentage={progress} />
         </View>
 
-        <RequiredUploadsList 
-            requirements={requirements} 
-            onUpload={handleUpload} 
-        />
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: theme.colors.card,
+              borderColor: theme.colors.border,
+            },
+          ]}
+        >
+          <RequiredUploadsList 
+              requirements={requirements} 
+              onUpload={handleUpload} 
+          />
+        </View>
 
         <AppButton 
             label="View All Uploads" 
@@ -113,5 +133,6 @@ const styles = StyleSheet.create({
   card: {
     padding: 16,
     borderRadius: 16,
+    borderWidth: 1,
   },
 });

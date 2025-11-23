@@ -89,17 +89,39 @@ export const LoanAssistantPanel = ({ beneficiaryName, loanAmount, bankName, vari
           contentContainerStyle={styles.messagesContent}
           showsVerticalScrollIndicator={variant === 'full'}
         >
-          {messages.map((message, index) => (
-            <View key={`${message.role}-${index}`} style={[styles.bubble, message.role === 'assistant' ? styles.assistantBubble : styles.userBubble]}
-              accessibilityLabel={`${message.role} message`}
-            >
-              <AppText variant="bodyMedium" color={message.role === 'assistant' ? 'text' : 'surface'}>
-                {message.content}
-              </AppText>
-            </View>
-          ))}
+          {messages.map((message, index) => {
+            const isAssistant = message.role === 'assistant';
+            const bubbleColors = isAssistant
+              ? {
+                  backgroundColor: theme.colors.surfaceVariant,
+                  borderColor: theme.colors.border,
+                  borderWidth: 1,
+                }
+              : {
+                  backgroundColor: theme.colors.card,
+                  borderColor: theme.colors.primary,
+                  borderWidth: 1,
+                };
+
+            return (
+              <View
+                key={`${message.role}-${index}`}
+                style={[styles.bubble, isAssistant ? styles.assistantBubble : styles.userBubble, bubbleColors]}
+                accessibilityLabel={`${message.role} message`}
+              >
+                <AppText variant="bodyMedium" color="text">
+                  {message.content}
+                </AppText>
+              </View>
+            );
+          })}
           {isSending ? (
-            <View style={[styles.bubble, styles.assistantBubble]}
+            <View
+              style={[
+                styles.bubble,
+                styles.assistantBubble,
+                { backgroundColor: theme.colors.surfaceVariant, borderColor: theme.colors.border, borderWidth: 1 },
+              ]}
               accessibilityLabel="Assistant typing"
             >
               <ActivityIndicator color={theme.colors.primary} size="small" />
@@ -163,11 +185,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   assistantBubble: {
-    backgroundColor: '#F5F6FF',
     alignSelf: 'flex-start',
   },
   userBubble: {
-    backgroundColor: '#1E63FF',
     alignSelf: 'flex-end',
   },
 });

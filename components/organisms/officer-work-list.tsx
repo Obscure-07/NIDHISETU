@@ -76,7 +76,7 @@ export const OfficerWorkList = ({ beneficiaries, onStartVerification }: OfficerW
     <View style={styles.container}>
       <View style={styles.headerRow}>
         <AppText variant="titleMedium" color="text">
-          Today's Work List
+          Today&apos;s Work List
         </AppText>
         <TouchableOpacity>
           <AppText variant="labelMedium" color="primary">

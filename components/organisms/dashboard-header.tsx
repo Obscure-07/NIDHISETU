@@ -5,6 +5,7 @@ import { AppText } from '@/components/atoms/app-text';
 import { BrandLogo } from '@/components/atoms/brand-logo';
 import { Chip } from '@/components/atoms/chip';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useTheme } from '@/hooks/use-theme';
 import type { SyncState, UserRole } from '@/types/entities';
 
 const roleLabels: Record<UserRole, string> = {
@@ -22,9 +23,22 @@ export interface DashboardHeaderProps {
 
 export const DashboardHeader = ({ name, role, syncState, onPressMenu }: DashboardHeaderProps) => {
   const theme = useAppTheme();
+  const { mode, toggleTheme } = useTheme();
+  const isDark = mode === 'dark';
+  const toggleIcon = isDark ? 'white-balance-sunny' : 'weather-night';
+  const toggleLabel = isDark ? 'Switch to light mode' : 'Switch to dark mode';
 
   return (
-    <View style={[styles.container, { paddingVertical: theme.spacing.lg }]}
+    <View
+      style={[
+        styles.container,
+        {
+          paddingVertical: theme.spacing.lg,
+          paddingHorizontal: theme.spacing.lg,
+          backgroundColor: theme.colors.surface,
+          borderColor: theme.colors.border,
+        },
+      ]}
       accessibilityRole="header"
     >
       <View style={styles.row}>
@@ -48,6 +62,20 @@ export const DashboardHeader = ({ name, role, syncState, onPressMenu }: Dashboar
           </AppText>
         </View>
         <Chip label={roleLabels[role]} tone="secondary" backgroundColor={theme.colors.secondaryContainer} />
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={toggleLabel}
+          onPress={toggleTheme}
+          style={[
+            styles.themeToggle,
+            {
+              backgroundColor: theme.colors.surfaceVariant,
+              borderColor: theme.colors.border,
+            },
+          ]}
+        >
+          <AppIcon name={toggleIcon} size={20} color={isDark ? 'warning' : 'icon'} />
+        </TouchableOpacity>
       </View>
       {syncState ? <SyncMeta syncState={syncState} /> : null}
     </View>
@@ -97,6 +125,8 @@ const SyncMeta = ({ syncState }: { syncState: SyncState }) => {
 const styles = StyleSheet.create({
   container: {
     gap: 12,
+    borderWidth: 1,
+    borderRadius: 20,
   },
   row: {
     flexDirection: 'row',
@@ -121,5 +151,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     padding: 12,
+  },
+  themeToggle: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
   },
 });
