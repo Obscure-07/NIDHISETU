@@ -2,7 +2,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as Location from 'expo-location';
 import { useEffect, useRef, useState } from 'react';
 import { Modal, StyleSheet, View } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker } from '../../components/react-native-maps-shim';
 
 import { AppButton } from '@/components/atoms/app-button';
 import { AppIcon } from '@/components/atoms/app-icon';
@@ -62,14 +62,15 @@ export const UploadEvidenceScreen = ({ route, navigation }: UploadEvidenceScreen
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background, padding: theme.spacing.lg }]}>
       <AppText variant="titleMedium" color="text">
         {requirementName ? `Upload ${requirementName}` : 'Upload Evidence'}
       </AppText>
-      <View style={styles.cameraWrapper}>
+      <View style={[styles.cameraWrapper, { backgroundColor: theme.colors.surface }]}>
         {cameraPermission?.granted ? (
-          <CameraView ref={cameraRef} style={StyleSheet.absoluteFillObject}>
-            <View style={styles.cameraOverlay}>
+          <>
+            <CameraView ref={cameraRef} style={StyleSheet.absoluteFillObject} />
+            <View style={[styles.cameraOverlay, { padding: theme.spacing.md }]}>
               <Chip label={statusMessage} tone="secondary" />
               <Chip
                 label={location ? 'GPS Locked' : 'Fetching GPS…'}
@@ -78,7 +79,7 @@ export const UploadEvidenceScreen = ({ route, navigation }: UploadEvidenceScreen
                 onPress={() => setShowMap(true)}
               />
             </View>
-          </CameraView>
+          </>
         ) : (
           <View style={styles.permissionView}>
             <AppText variant="bodyMedium" color="text">
@@ -92,7 +93,15 @@ export const UploadEvidenceScreen = ({ route, navigation }: UploadEvidenceScreen
         <AppButton label="Capture Photo" icon="camera" onPress={handleCapturePhoto} />
         <AppButton label="Record Video" icon="video" variant="secondary" onPress={handleCaptureVideo} />
       </View>
-      <View style={styles.infoCard}>
+      <View
+        style={[
+          styles.infoCard,
+          {
+            backgroundColor: theme.colors.card,
+            borderColor: theme.colors.border,
+          },
+        ]}
+      >
         <AppText variant="titleSmall" color="text">
           Offline Queue
         </AppText>
@@ -102,7 +111,7 @@ export const UploadEvidenceScreen = ({ route, navigation }: UploadEvidenceScreen
         <AppButton label="View Pending Uploads" variant="outline" icon="cloud-off-outline" />
       </View>
       <Modal visible={showMap} transparent animationType="fade">
-        <View style={styles.modalBackdrop}>
+        <View style={[styles.modalBackdrop, { backgroundColor: theme.colors.overlay }]}>
           <View style={[styles.modalContent, { backgroundColor: theme.colors.card }]}
             accessible
             accessibilityLabel="Map preview"
@@ -124,7 +133,7 @@ export const UploadEvidenceScreen = ({ route, navigation }: UploadEvidenceScreen
                 Fetching location…
               </AppText>
             )}
-            <AppButton label="Close" onPress={() => setShowMap(false)} style={{ marginTop: 12 }} />
+            <AppButton label="Close" onPress={() => setShowMap(false)} style={{ marginTop: theme.spacing.sm }} />
           </View>
         </View>
       </Modal>
@@ -142,11 +151,15 @@ const styles = StyleSheet.create({
     height: 320,
     borderRadius: 20,
     overflow: 'hidden',
-    backgroundColor: '#000',
+    position: 'relative',
   },
   cameraOverlay: {
     padding: 16,
     gap: 12,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
   },
   actionRow: {
     flexDirection: 'row',
@@ -155,8 +168,8 @@ const styles = StyleSheet.create({
   infoCard: {
     padding: 16,
     borderRadius: 16,
-    backgroundColor: '#F5F6FF',
     gap: 6,
+    borderWidth: 1,
   },
   permissionView: {
     flex: 1,
@@ -166,7 +179,6 @@ const styles = StyleSheet.create({
   },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'center',
     padding: 24,
   },

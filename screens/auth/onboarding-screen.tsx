@@ -193,7 +193,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   heroCopy: {
-    color: '#F8FAFF',
     opacity: 0.9,
   },
   rolesRow: {

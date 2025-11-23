@@ -4,6 +4,7 @@ import { ImageBackground, ScrollView, StyleSheet, View } from 'react-native';
 import { AppButton } from '@/components/atoms/app-button';
 import { AppIcon } from '@/components/atoms/app-icon';
 import { AppText } from '@/components/atoms/app-text';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import type { ReviewerStackParamList } from '@/navigation/types';
 import type { SubmissionEvidence } from '@/types/entities';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -25,14 +26,20 @@ export type ReviewDetailScreenProps = NativeStackScreenProps<ReviewerStackParamL
 
 export const ReviewDetailScreen = ({ route }: ReviewDetailScreenProps) => {
   const submission = useMemo(() => submissions[route.params.submissionId] ?? Object.values(submissions)[0], [route.params.submissionId]);
+  const theme = useAppTheme();
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView
+      style={{ backgroundColor: theme.colors.background }}
+      contentContainerStyle={[styles.container, { padding: theme.spacing.lg, gap: theme.spacing.md }]}
+    >
       <ImageBackground
         source={{ uri: submission.thumbnailUrl ?? 'https://placehold.co/600x400' }}
         style={styles.media}
       >
-        <View style={styles.mediaBadge}>
+        <View style={[styles.mediaBadge, { backgroundColor: theme.colors.overlay }]}
+          accessibilityLabel={`${submission.mediaType} badge`}
+        >
           <AppIcon name={submission.mediaType === 'photo' ? 'camera' : 'video'} color="onPrimary" />
           <AppText variant="labelSmall" color="onPrimary">
             {submission.mediaType.toUpperCase()}
@@ -45,7 +52,15 @@ export const ReviewDetailScreen = ({ route }: ReviewDetailScreenProps) => {
       <AppText variant="bodyMedium" color="muted">
         Captured {new Date(submission.capturedAt).toLocaleString()}
       </AppText>
-      <View style={styles.mapPlaceholder}>
+      <View
+        style={[
+          styles.mapPlaceholder,
+          {
+            backgroundColor: theme.colors.card,
+            borderColor: theme.colors.border,
+          },
+        ]}
+      >
         <AppIcon name="map" size={28} color="muted" />
         <AppText variant="labelMedium" color="muted">
           Map preview available on mobile builds
@@ -79,7 +94,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: 'rgba(0,0,0,0.5)',
     padding: 8,
     margin: 12,
     borderRadius: 999,
@@ -87,9 +101,7 @@ const styles = StyleSheet.create({
   mapPlaceholder: {
     height: 180,
     borderRadius: 16,
-    backgroundColor: '#f4f4f4',
     borderWidth: 1,
-    borderColor: '#e0e0e0',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,

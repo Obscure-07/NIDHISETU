@@ -65,73 +65,75 @@ const elevations: Record<'level0' | 'card' | 'fab', Shadow> = {
 };
 
 const lightColors = {
-  primary: '#FF7A00', // Primary Orange
+  primary: '#2563EB',
   onPrimary: '#FFFFFF',
-  primaryContainer: '#FFE0B2', // Light Orange
-  onPrimaryContainer: '#E65100', // Dark Orange
-  secondary: '#4A2C82', // Deep Purple
+  primaryContainer: '#DBEAFE',
+  onPrimaryContainer: '#1E3A8A',
+  secondary: '#4A2C82',
   onSecondary: '#FFFFFF',
-  secondaryContainer: '#F3E5F5', // Light Purple
-  onSecondaryContainer: '#4A148C', // Dark Purple
-  tertiary: '#9C7AC2', // Soft Purple
-  background: '#F8FAFC', // Slate 50
+  secondaryContainer: '#EDE9FE',
+  onSecondaryContainer: '#3C1D71',
+  tertiary: '#7C3AED',
+  background: '#FFFFFF',
   surface: '#FFFFFF',
-  surfaceVariant: '#F1F1F1', // Soft Grey
-  outline: '#94A3B8', // Slate 400
-  text: '#1A1A1A', // Dark Text
-  muted: '#64748B', // Slate 500
-  border: '#E2E8F0', // Slate 200
-  icon: '#334155', // Slate 700
-  tint: '#FF7A00',
+  surfaceVariant: '#F1F5F9',
+  outline: '#CBD5F5',
+  text: '#1A1A1A',
+  subtext: '#555555',
+  muted: '#555555',
+  border: '#DDDDDD',
+  icon: '#1E293B',
+  tint: '#2563EB',
   tabIconDefault: '#94A3B8',
-  tabIconSelected: '#FF7A00',
-  success: '#4CAF50', // Success Green
-  warning: '#FFC107', // Amber
-  error: '#E53935', // Error Red
-  info: '#2196F3', // Blue
-  successContainer: '#E8F5E9',
-  warningContainer: '#FFF8E1',
-  errorContainer: '#FFEBEE',
-  infoContainer: '#E3F2FD',
-  card: '#FFFFFF',
+  tabIconSelected: '#2563EB',
+  success: '#16A34A',
+  warning: '#FACC15',
+  error: '#DC2626',
+  info: '#0EA5E9',
+  successContainer: '#DCFCE7',
+  warningContainer: '#FEF9C3',
+  errorContainer: '#FEE2E2',
+  infoContainer: '#E0F2FE',
+  card: '#F4F4F4',
   overlay: 'rgba(15, 23, 42, 0.6)',
-  gradientStart: '#FF7A00',
-  gradientEnd: '#FF9E40',
+  gradientStart: '#2563EB',
+  gradientEnd: '#3B82F6',
 };
 
 const darkColors: typeof lightColors = {
-  primary: '#FF9E40', // Lighter Orange for dark mode
-  onPrimary: '#1A1A1A',
-  primaryContainer: '#E65100',
-  onPrimaryContainer: '#FFE0B2',
-  secondary: '#9C7AC2', // Lighter Purple for dark mode
-  onSecondary: '#1A1A1A',
-  secondaryContainer: '#4A148C',
-  onSecondaryContainer: '#F3E5F5',
-  tertiary: '#B39DDB',
-  background: '#121212', // Dark Background
-  surface: '#1E1E1E', // Dark Surface
-  surfaceVariant: '#2C2C2C',
-  outline: '#757575',
-  text: '#FFFFFF', // Light Text
-  muted: '#A0A0A0',
-  border: '#333333',
-  icon: '#E0E0E0',
-  tint: '#FF9E40',
-  tabIconDefault: '#757575',
-  tabIconSelected: '#FF9E40',
-  success: '#81C784',
-  warning: '#FFD54F',
-  error: '#E57373',
-  info: '#64B5F6',
-  successContainer: '#1B5E20',
-  warningContainer: '#FF6F00',
-  errorContainer: '#B71C1C',
-  infoContainer: '#0D47A1',
-  card: '#1E1E1E',
-  overlay: 'rgba(0, 0, 0, 0.8)',
-  gradientStart: '#E65100',
-  gradientEnd: '#FF7A00',
+  primary: '#3B82F6',
+  onPrimary: '#FFFFFF',
+  primaryContainer: '#60A5FA',
+  onPrimaryContainer: '#0D0D0D',
+  secondary: '#C4B5FD',
+  onSecondary: '#0D0D0D',
+  secondaryContainer: '#312E81',
+  onSecondaryContainer: '#F5F3FF',
+  tertiary: '#A78BFA',
+  background: '#0D0D0D',
+  surface: '#0D0D0D',
+  surfaceVariant: '#1A1A1A',
+  outline: '#2A2A2A',
+  text: '#FFFFFF',
+  subtext: '#B3B3B3',
+  muted: '#B3B3B3',
+  border: '#2A2A2A',
+  icon: '#FFFFFF',
+  tint: '#60A5FA',
+  tabIconDefault: '#9CA3AF',
+  tabIconSelected: '#3B82F6',
+  success: '#22C55E',
+  warning: '#FACC15',
+  error: '#EF4444',
+  info: '#38BDF8',
+  successContainer: '#064E3B',
+  warningContainer: '#423006',
+  errorContainer: '#450A0A',
+  infoContainer: '#1E3A8A',
+  card: '#1A1A1A',
+  overlay: 'rgba(0, 0, 0, 0.75)',
+  gradientStart: '#1D4ED8',
+  gradientEnd: '#3B82F6',
 };
 
 export interface AppTheme {

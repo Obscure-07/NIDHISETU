@@ -44,10 +44,10 @@ export const OfficerTaskOverview = ({ stats }: OfficerTaskOverviewProps) => {
   const items: StatItem[] = [
     { label: 'Assigned', value: stats.total, color: theme.colors.primary, progress: 1 },
     { label: 'Verified', value: stats.approved, color: theme.colors.secondary, progress: stats.approved / total },
-    { label: 'Pending', value: stats.pending, color: theme.colors.muted, progress: stats.pending / total },
+    { label: 'Pending', value: stats.pending, color: theme.colors.subtext, progress: stats.pending / total },
     { label: 'Rejected', value: stats.rejected, color: theme.colors.error, progress: stats.rejected / total },
     // Mocking 'Under Review' as it's not in AnalyticsSummary yet
-    { label: 'Review', value: 0, color: '#3F51B5', progress: 0 },
+    { label: 'Review', value: 0, color: theme.colors.info, progress: 0 },
   ];
 
   return (

@@ -196,9 +196,27 @@ export const LoanEvidenceCameraScreen = ({ loanId, onUploadComplete }: LoanEvide
     >
       {!photoUri ? (
         <CameraView style={styles.camera} ref={cameraRef} facing="back" mode="picture">
-          <View style={styles.cameraOverlay}>
-            <TouchableOpacity style={styles.captureButton} onPress={handleCapture} disabled={isCapturing}>
-              <View style={styles.captureInner} />
+          <View style={[styles.cameraOverlay, { paddingBottom: theme.spacing.xl }]}
+            pointerEvents="box-none"
+          >
+            <TouchableOpacity
+              style={[
+                styles.captureButton,
+                {
+                  borderColor: theme.colors.text,
+                },
+              ]}
+              onPress={handleCapture}
+              disabled={isCapturing}
+            >
+              <View
+                style={[
+                  styles.captureInner,
+                  {
+                    backgroundColor: theme.colors.primary,
+                  },
+                ]}
+              />
             </TouchableOpacity>
           </View>
         </CameraView>
@@ -207,7 +225,9 @@ export const LoanEvidenceCameraScreen = ({ loanId, onUploadComplete }: LoanEvide
           <Image source={{ uri: photoUri }} style={StyleSheet.absoluteFill} />
           
           <View style={styles.watermarkOverlay} pointerEvents="none">
-             <View style={[styles.watermark, { backgroundColor: '#00000088' }]}>
+             <View style={[styles.watermark, { backgroundColor: theme.colors.overlay }]}
+              accessibilityLabel="Watermark overlay"
+            >
               {watermarkLines.map((line) => (
                 <AppText key={line} variant="labelSmall" color="surface">
                   {line}
@@ -224,7 +244,15 @@ export const LoanEvidenceCameraScreen = ({ loanId, onUploadComplete }: LoanEvide
       )}
 
       {!photoUri && (
-        <View style={styles.metaBar}>
+        <View
+          style={[
+            styles.metaBar,
+            {
+              backgroundColor: theme.colors.card,
+              borderColor: theme.colors.border,
+            },
+          ]}
+        >
           <AppIcon name="crosshairs-gps" color="primary" />
           <AppText variant="bodySmall" color="muted">
             {location
@@ -264,7 +292,6 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     borderWidth: 4,
-    borderColor: '#FFFFFFAA',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -272,7 +299,6 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#FFFFFF',
   },
   previewWrapper: {
     flex: 1,
@@ -294,6 +320,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     padding: 12,
+    borderWidth: 1,
+    borderRadius: 999,
+    margin: 16,
   },
   watermarkOverlay: {
     position: 'absolute',

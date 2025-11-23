@@ -16,7 +16,8 @@ export type AppIconProps = {
 
 export const AppIcon = ({ name, size = 20, color = 'text', style }: AppIconProps) => {
   const theme = useAppTheme();
-  const resolvedColor = typeof color === 'string' ? color : theme.colors[color];
+  const palette = theme.colors;
+  const resolvedColor = typeof color === 'string' ? palette[color as ColorToken] ?? color : palette[color];
 
   return <MaterialCommunityIcons name={name} size={size} color={resolvedColor} style={style} />;
 };
