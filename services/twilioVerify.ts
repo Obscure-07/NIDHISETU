@@ -1,11 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { encode as base64Encode } from 'base-64';
+import Constants from 'expo-constants';
 
 const VERIFY_SERVICE_CACHE_KEY = 'nidhisetu.twilio.verifyServiceSid';
 const VERIFY_FRIENDLY_NAME = 'NIDHISETU Verify';
 
-const accountSid = process.env.EXPO_PUBLIC_TWILIO_ACCOUNT_SID;
-const authToken = process.env.EXPO_PUBLIC_TWILIO_AUTH_TOKEN;
+const extraEnv = (Constants.expoConfig?.extra as { env?: Record<string, string | undefined> } | undefined)?.env ?? {};
+const accountSid = process.env.EXPO_PUBLIC_TWILIO_ACCOUNT_SID ?? extraEnv.EXPO_PUBLIC_TWILIO_ACCOUNT_SID;
+const authToken = process.env.EXPO_PUBLIC_TWILIO_AUTH_TOKEN ?? extraEnv.EXPO_PUBLIC_TWILIO_AUTH_TOKEN;
 
 let cachedServiceSid: string | null = null;
 

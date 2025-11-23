@@ -1,6 +1,13 @@
+import Constants from 'expo-constants';
+
 const GEMINI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
-const API_KEY = process.env.AI_SERVICE_API_KEY ?? process.env.EXPO_PUBLIC_AI_SERVICE_API_KEY;
+const extraEnv = (Constants.expoConfig?.extra as { env?: Record<string, string | undefined> } | undefined)?.env ?? {};
+const API_KEY =
+  process.env.AI_SERVICE_API_KEY ??
+  process.env.EXPO_PUBLIC_AI_SERVICE_API_KEY ??
+  extraEnv.AI_SERVICE_API_KEY ??
+  extraEnv.EXPO_PUBLIC_AI_SERVICE_API_KEY;
 
 if (!API_KEY) {
   console.warn('AI_SERVICE_API_KEY is not set. Loan assistant will be disabled.');
