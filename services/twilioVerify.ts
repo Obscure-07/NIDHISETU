@@ -20,7 +20,17 @@ const accountSid = sanitizeEnvValue(process.env.EXPO_PUBLIC_TWILIO_ACCOUNT_SID) 
 const authToken = sanitizeEnvValue(process.env.EXPO_PUBLIC_TWILIO_AUTH_TOKEN) ?? sanitizeEnvValue(extraEnv.EXPO_PUBLIC_TWILIO_AUTH_TOKEN);
 const configuredServiceSid = sanitizeEnvValue(process.env.EXPO_PUBLIC_TWILIO_VERIFY_SERVICE_SID) ?? sanitizeEnvValue(extraEnv.EXPO_PUBLIC_TWILIO_VERIFY_SERVICE_SID);
 
-let cachedServiceSid: string | null = configuredServiceSid ?? null;
+const isVerifyServiceSid = (value?: string | null): value is string => !!value && value.startsWith('VA');
+
+if (configuredServiceSid && !isVerifyServiceSid(configuredServiceSid)) {
+  console.warn(
+    'Configured Twilio Verify service SID is not valid (should start with "VA"). Falling back to auto-create.'
+  );
+}
+
+const preferredServiceSid = isVerifyServiceSid(configuredServiceSid) ? configuredServiceSid : null;
+
+let cachedServiceSid: string | null = preferredServiceSid;
 
 const twilioBaseUrl = 'https://verify.twilio.com/v2';
 
@@ -48,11 +58,31 @@ const encodeCredentials = () => {
 };
 
 const toE164 = (value: string) => {
-  const digits = value.replace(/[^0-9+]/g, '');
-  if (digits.startsWith('+')) {
-    return digits;
+  const cleaned = value.trim();
+  if (!cleaned) {
+    throw new Error('Please enter a mobile number.');
   }
-  return `+91${digits}`;
+
+  const digitsWithPlus = cleaned.replace(/[^0-9+]/g, '');
+  if (digitsWithPlus.startsWith('+')) {
+    return digitsWithPlus;
+  }
+
+  let digitsOnly = cleaned.replace(/[^0-9]/g, '');
+
+  if (digitsOnly.startsWith('0091')) {
+    digitsOnly = digitsOnly.slice(4);
+  } else if (digitsOnly.startsWith('91') && digitsOnly.length === 12) {
+    digitsOnly = digitsOnly.slice(2);
+  }
+
+  digitsOnly = digitsOnly.replace(/^0+/, '');
+
+  if (digitsOnly.length !== 10) {
+    throw new Error('Please enter a valid 10-digit Indian mobile number.');
+  }
+
+  return `+91${digitsOnly}`;
 };
 
 const request = async (path: string, body: URLSearchParams) => {
@@ -72,10 +102,12 @@ const request = async (path: string, body: URLSearchParams) => {
     } catch {
       // ignore
     }
-    const message = detail?.message ?? response.statusText;
+    const messageDetail = detail?.more_info ? `${detail.more_info}` : '';
+    const codeDetail = detail?.code ? ` (code ${detail.code})` : '';
+    const message = [detail?.message ?? response.statusText, messageDetail].filter(Boolean).join(' ') + codeDetail;
     if (response.status === 401) {
       await AsyncStorage.removeItem(VERIFY_SERVICE_CACHE_KEY).catch(() => undefined);
-      cachedServiceSid = configuredServiceSid ?? null;
+      cachedServiceSid = preferredServiceSid;
       throw new Error(
         'Twilio authentication failed. Double-check EXPO_PUBLIC_TWILIO_ACCOUNT_SID / EXPO_PUBLIC_TWILIO_AUTH_TOKEN and restart the Expo dev server.'
       );
@@ -91,9 +123,12 @@ const ensureVerifyServiceSid = async () => {
     return cachedServiceSid;
   }
   const stored = await AsyncStorage.getItem(VERIFY_SERVICE_CACHE_KEY);
-  if (stored) {
+  if (stored && isVerifyServiceSid(stored)) {
     cachedServiceSid = stored;
     return stored;
+  }
+  if (stored && !isVerifyServiceSid(stored)) {
+    await AsyncStorage.removeItem(VERIFY_SERVICE_CACHE_KEY).catch(() => undefined);
   }
 
   const params = new URLSearchParams({ FriendlyName: VERIFY_FRIENDLY_NAME });
