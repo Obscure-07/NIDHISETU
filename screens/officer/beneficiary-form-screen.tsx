@@ -626,7 +626,7 @@ export const BeneficiaryFormScreen = ({ navigation }: BeneficiaryFormScreenProps
                 label="Gender"
                 options={genderOptions}
                 multiple={false}
-                value={field.value}
+                value={field.value ?? ''}
                 onChange={field.onChange}
                 error={errors.gender?.message}
               />
@@ -660,14 +660,14 @@ export const BeneficiaryFormScreen = ({ navigation }: BeneficiaryFormScreenProps
             control={control}
             name="caste"
             render={({ field }) => (
-              <ChipSelector label="Caste / Category" options={casteOptions} multiple={false} value={field.value} onChange={field.onChange} />
+              <ChipSelector label="Caste / Category" options={casteOptions} multiple={false} value={field.value ?? ''} onChange={field.onChange} />
             )}
           />
           <Controller
             control={control}
             name="maritalStatus"
             render={({ field }) => (
-              <ChipSelector label="Marital Status" options={maritalOptions} multiple={false} value={field.value} onChange={field.onChange} />
+              <ChipSelector label="Marital Status" options={maritalOptions} multiple={false} value={field.value ?? ''} onChange={field.onChange} />
             )}
           />
           <AttachmentField
@@ -859,7 +859,7 @@ export const BeneficiaryFormScreen = ({ navigation }: BeneficiaryFormScreenProps
                 label="Scheme Name"
                 options={schemeOptions}
                 multiple={false}
-                value={field.value}
+                value={field.value ?? ''}
                 onChange={field.onChange}
                 error={errors.schemeName?.message}
               />
@@ -874,7 +874,7 @@ export const BeneficiaryFormScreen = ({ navigation }: BeneficiaryFormScreenProps
                 label="Loan Type"
                 options={loanTypeOptions}
                 multiple={false}
-                value={field.value}
+                value={field.value ?? ''}
                 onChange={field.onChange}
                 error={errors.loanType?.message}
               />
@@ -968,7 +968,7 @@ export const BeneficiaryFormScreen = ({ navigation }: BeneficiaryFormScreenProps
                 label="Business Type"
                 options={businessTypeOptions}
                 multiple={false}
-                value={field.value}
+                value={field.value ?? ''}
                 onChange={field.onChange}
                 error={errors.businessType?.message}
               />

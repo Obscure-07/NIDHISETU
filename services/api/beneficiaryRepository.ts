@@ -128,7 +128,7 @@ const subscribeToRecords = (onData: (records: BeneficiaryRecord[]) => void, onEr
     .subscribe();
 
   return () => {
-    supabase.removeChannel(channel);
+    supabase?.removeChannel(channel);
   };
 };
 
@@ -167,7 +167,7 @@ const subscribeToRecord = (
     .subscribe();
 
   return () => {
-    supabase.removeChannel(channel);
+    supabase?.removeChannel(channel);
   };
 };
 
