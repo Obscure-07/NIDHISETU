@@ -29,15 +29,15 @@ import { LoanEvidenceCameraScreen } from '@/screens/beneficiary/loan-evidence-ca
 import { NotificationsScreen } from '@/screens/beneficiary/notifications-screen';
 import { PreviousSubmissionsScreen } from '@/screens/beneficiary/previous-submissions-screen';
 import { BeneficiaryProfileScreen } from '@/screens/beneficiary/profile-screen';
+import { SubmissionDetailScreen } from '@/screens/beneficiary/submission-detail-screen';
 import { SubsidyCalculatorScreen } from '@/screens/beneficiary/subsidy-calculator-screen';
 import { SyncStatusScreen } from '@/screens/beneficiary/sync-status-screen';
 import { UploadEvidenceScreen } from '@/screens/beneficiary/upload-evidence-screen';
-import { SubmissionDetailScreen } from '@/screens/beneficiary/submission-detail-screen';
 import { BeneficiaryFormScreen } from '@/screens/officer/beneficiary-form-screen';
 import { BeneficiaryListScreen } from '@/screens/officer/beneficiary-list-screen';
 import { OfficerDashboardScreen } from '@/screens/officer/dashboard-screen';
-import { VerificationDetailScreen } from '@/screens/officer/verification-detail-screen';
 import { OfficerSubmissionDetailScreen } from '@/screens/officer/officer-submission-detail-screen';
+import { VerificationDetailScreen } from '@/screens/officer/verification-detail-screen';
 import { VerificationTasksScreen } from '@/screens/officer/verification-tasks-screen';
 import { ReviewerDashboardScreen } from '@/screens/reviewer/dashboard-screen';
 import { ReviewDetailScreen } from '@/screens/reviewer/review-detail-screen';
