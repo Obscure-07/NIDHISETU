@@ -10,9 +10,11 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useMemo } from 'react';
 import { Alert, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useT } from 'lingo.dev/react';
 
 import { AppIcon } from '@/components/atoms/app-icon';
 import { AppText } from '@/components/atoms/app-text';
+import type { AppTheme } from '@/constants/theme';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { MobileInputScreen } from '@/screens/auth/mobile-input-screen';
 import { OnboardingScreen } from '@/screens/auth/onboarding-screen';
@@ -70,42 +72,49 @@ const AuthNavigator = () => (
 );
 
 const BeneficiaryTabNavigator = () => {
+  const theme = useAppTheme();
+
+  const tabScreenOptions = useMemo(
+    () => ({
+      headerShown: false,
+      tabBarStyle: {
+        position: 'absolute',
+        bottom: 20,
+        left: 20,
+        right: 20,
+        elevation: theme.mode === 'dark' ? 0 : 5,
+        backgroundColor: theme.colors.surface,
+        borderRadius: 35,
+        height: 70,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: theme.mode === 'dark' ? 0.35 : 0.1,
+        shadowRadius: 10,
+        borderTopWidth: 0,
+        borderWidth: theme.mode === 'dark' ? 1 : 0,
+        borderColor: theme.colors.border,
+        paddingBottom: 0,
+        paddingTop: 0,
+      },
+      tabBarItemStyle: {
+        height: 70,
+        padding: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+      },
+      tabBarIconStyle: {
+        marginTop: 0,
+        marginBottom: 0,
+      },
+      tabBarShowLabel: false,
+      tabBarActiveTintColor: theme.mode === 'dark' ? theme.colors.onPrimary : theme.colors.primary,
+      tabBarInactiveTintColor: theme.colors.subtext,
+    }),
+    [theme]
+  );
+
   return (
-    <Tab.Navigator
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: {
-          position: 'absolute',
-          bottom: 20,
-          left: 20,
-          right: 20,
-          elevation: 5,
-          backgroundColor: '#ffffff',
-          borderRadius: 35,
-          height: 70,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.1,
-          shadowRadius: 10,
-          borderTopWidth: 0,
-          paddingBottom: 0,
-          paddingTop: 0,
-        },
-        tabBarItemStyle: {
-          height: 70,
-          padding: 0,
-          justifyContent: 'center',
-          alignItems: 'center',
-        },
-        tabBarIconStyle: {
-          marginTop: 0,
-          marginBottom: 0,
-        },
-        tabBarShowLabel: false,
-        tabBarActiveTintColor: '#7C3AED',
-        tabBarInactiveTintColor: '#9CA3AF',
-      }}
-    >
+    <Tab.Navigator screenOptions={tabScreenOptions} sceneContainerStyle={{ backgroundColor: theme.colors.background }}>
       <Tab.Screen
         name="Home"
         component={BeneficiaryDashboardScreen}
@@ -151,14 +160,31 @@ const BeneficiaryDrawerNavigator = () => {
   const theme = useAppTheme();
   const profile = useAuthStore((state) => state.profile);
   const logout = useAuthStore((state) => state.actions.logout);
+  const t = useT();
 
   return (
     <BeneficiaryDrawer.Navigator
-      screenOptions={({ route, navigation }) => ({
+      screenOptions={({ route }) => ({
         headerShown: false,
-        drawerActiveTintColor: '#FFFFFF',
-        drawerInactiveTintColor: '#E9D5FF',
-        drawerStyle: { backgroundColor: '#7C3AED', width: '80%' },
+        drawerActiveTintColor: theme.colors.onPrimary,
+        drawerInactiveTintColor: theme.colors.subtext,
+        drawerActiveBackgroundColor: theme.colors.primary,
+        drawerInactiveBackgroundColor: 'transparent',
+        drawerStyle: {
+          backgroundColor: theme.colors.surface,
+          width: '80%',
+          borderRightWidth: theme.mode === 'dark' ? 0 : 1,
+          borderRightColor: theme.colors.border,
+        },
+        drawerContentStyle: { backgroundColor: theme.colors.surface },
+        drawerItemStyle: {
+          borderRadius: theme.radii.lg,
+          marginHorizontal: 12,
+        },
+        drawerLabelStyle: {
+          fontSize: 16,
+          fontWeight: '600',
+        },
         sceneContainerStyle: { backgroundColor: theme.colors.background },
         drawerIcon: ({ color, size }) => (
           <AppIcon
@@ -180,32 +206,32 @@ const BeneficiaryDrawerNavigator = () => {
       <BeneficiaryDrawer.Screen
         name="BeneficiaryDashboard"
         component={BeneficiaryTabNavigator}
-        options={{ title: 'Dashboard', drawerIcon: ({color}) => <AppIcon name="view-dashboard" size={24} color={color} /> }}
+        options={{ title: t('Dashboard'), drawerIcon: ({color}) => <AppIcon name="view-dashboard" size={24} color={color} /> }}
       />
       <BeneficiaryDrawer.Screen
         name="BeneficiaryProfile"
         component={BeneficiaryProfileScreen}
-        options={{ title: 'Profile', drawerIcon: ({color}) => <AppIcon name="account" size={24} color={color} /> }}
+        options={{ title: t('Profile'), drawerIcon: ({color}) => <AppIcon name="account" size={24} color={color} /> }}
       />
       <BeneficiaryDrawer.Screen
         name="PreviousSubmissions"
         component={PreviousSubmissionsScreen}
-        options={{ title: 'My Submissions', drawerIcon: ({color}) => <AppIcon name="history" size={24} color={color} /> }}
+        options={{ title: t('My Submissions'), drawerIcon: ({color}) => <AppIcon name="history" size={24} color={color} /> }}
       />
       <BeneficiaryDrawer.Screen
         name="SyncStatus"
         component={SyncStatusScreen}
-        options={{ title: 'Download', drawerIcon: ({color}) => <AppIcon name="download" size={24} color={color} /> }}
+        options={{ title: t('Download'), drawerIcon: ({color}) => <AppIcon name="download" size={24} color={color} /> }}
       />
       <BeneficiaryDrawer.Screen
         name="LoanAssistant"
         component={BeneficiaryLoanAssistantScreen}
-        options={{ title: 'Support', drawerIcon: ({color}) => <AppIcon name="lifebuoy" size={24} color={color} /> }}
+        options={{ title: t('Support'), drawerIcon: ({color}) => <AppIcon name="lifebuoy" size={24} color={color} /> }}
       />
       <BeneficiaryDrawer.Screen
         name="LoanDetails"
         component={LoanDetailsScreen}
-        options={{ title: 'Settings', drawerIcon: ({color}) => <AppIcon name="cog" size={24} color={color} /> }}
+        options={{ title: t('Settings'), drawerIcon: ({color}) => <AppIcon name="cog" size={24} color={color} /> }}
       />
     </BeneficiaryDrawer.Navigator>
   );
@@ -340,12 +366,14 @@ type BeneficiaryDrawerContentProps = DrawerContentComponentProps & {
 
 const BeneficiaryDrawerContent = ({ beneficiaryName, beneficiaryVillage, onLogout, ...props }: BeneficiaryDrawerContentProps) => {
   const theme = useAppTheme();
+  const t = useT();
+  const styles = useMemo(() => createBeneficiaryDrawerStyles(theme), [theme]);
 
   const handleLogout = () => {
-    Alert.alert('Logout', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('Logout'), t('Are you sure you want to sign out?'), [
+      { text: t('Cancel'), style: 'cancel' },
       {
-        text: 'Logout',
+        text: t('Logout'),
         style: 'destructive',
         onPress: () => {
           props.navigation.closeDrawer();
@@ -356,16 +384,24 @@ const BeneficiaryDrawerContent = ({ beneficiaryName, beneficiaryVillage, onLogou
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#7C3AED' }}>
-      <View style={{ padding: 24, paddingTop: 60 }}>
-        <AppText style={{ fontSize: 24, fontWeight: 'bold', color: '#FFFFFF' }}>NIDHISETU</AppText>
+    <View style={styles.container}>
+      <View style={styles.profileHeader}>
+        <AppText style={styles.brand}>NIDHISETU</AppText>
+        <AppText style={styles.beneficiaryName} numberOfLines={1}>
+          {beneficiaryName}
+        </AppText>
+        {beneficiaryVillage ? (
+          <AppText style={styles.beneficiaryMeta} numberOfLines={1}>
+            {beneficiaryVillage}
+          </AppText>
+        ) : null}
       </View>
-      <DrawerContentScrollView {...props} contentContainerStyle={{ paddingTop: 0 }}>
+      <DrawerContentScrollView {...props} contentContainerStyle={styles.drawerScrollContent}>
         <DrawerItemList {...props} />
       </DrawerContentScrollView>
-      <View style={{ padding: 24, paddingBottom: 40 }}>
-        <TouchableOpacity onPress={handleLogout} style={{ alignSelf: 'flex-end', backgroundColor: '#333', padding: 12, borderRadius: 30 }}>
-          <AppIcon name="power" size={24} color="#FFFFFF" />
+      <View style={styles.logoutSection}>
+        <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+          <AppIcon name="power" size={24} color={theme.colors.onSecondary} />
         </TouchableOpacity>
       </View>
     </View>
@@ -456,6 +492,54 @@ const OfficerDrawerContent = ({ officerName, officerMobile, onLogout, ...props }
     </LinearGradient>
   );
 };
+
+const createBeneficiaryDrawerStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.surface,
+    },
+    profileHeader: {
+      paddingHorizontal: 24,
+      paddingTop: 60,
+      paddingBottom: 24,
+      backgroundColor: theme.colors.primary,
+      borderBottomLeftRadius: theme.radii.lg,
+      borderBottomRightRadius: theme.radii.lg,
+      gap: 4,
+    },
+    brand: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: theme.colors.onPrimary,
+    },
+    beneficiaryName: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: theme.colors.onPrimary,
+    },
+    beneficiaryMeta: {
+      fontSize: 13,
+      color: theme.colors.onPrimary,
+      opacity: 0.85,
+    },
+    drawerScrollContent: {
+      paddingTop: 0,
+      backgroundColor: theme.colors.surface,
+    },
+    logoutSection: {
+      paddingHorizontal: 24,
+      paddingBottom: 40,
+      paddingTop: 12,
+      backgroundColor: theme.colors.surface,
+    },
+    logoutButton: {
+      alignSelf: 'flex-end',
+      backgroundColor: theme.colors.secondary,
+      padding: 12,
+      borderRadius: theme.radii.pill,
+    },
+  });
 
 const drawerStyles = StyleSheet.create({
   gradientBackground: {
