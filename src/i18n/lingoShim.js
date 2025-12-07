@@ -1,5 +1,4 @@
 import { createContext, useCallback, useContext } from "react";
-import { LingoProvider as BaseLingoProvider } from "@lingo.dev/_react/client";
 
 export const DEFAULT_LOCALE = "en";
 
@@ -9,12 +8,10 @@ export const LocaleContext = createContext({
   dictionary: {},
 });
 
-let localeRef = DEFAULT_LOCALE;
 let dictionaryRef = {};
 let setLocaleRef = () => {};
 
-export const syncLocaleState = ({ locale, dictionary, setLocale }) => {
-  localeRef = locale;
+export const syncLocaleState = ({ dictionary, setLocale }) => {
   dictionaryRef = dictionary;
   setLocaleRef = setLocale;
 };
@@ -43,7 +40,5 @@ export const useT = () => {
 };
 
 export const t = (key, fallback) => dictionaryRef?.[key] ?? fallback ?? key;
-
-export const LingoProvider = BaseLingoProvider;
 
 export * from "@lingo.dev/_react/client";

@@ -20,6 +20,14 @@ export const BeneficiaryProfileScreen = ({ navigation }: any) => {
     const gradientColors = useMemo(() => [theme.colors.gradientStart, theme.colors.gradientEnd], [theme]);
     const waveFill = theme.colors.background;
 
+  // Force refresh image by appending timestamp if avatarUrl exists
+  const avatarUrl = useMemo(() => {
+      if (!profile?.avatarUrl) return null;
+      // If url already has query params, append with &, else ?
+      const separator = profile.avatarUrl.includes('?') ? '&' : '?';
+      return `${profile.avatarUrl}${separator}refresh=${Date.now()}`; // Force refresh on mount
+  }, [profile?.avatarUrl]);
+
   // Mock data if profile is missing some fields
     const userProfile = useMemo(() => ({
         name: profile?.name || 'Ramesh Kumar',
@@ -31,8 +39,8 @@ export const BeneficiaryProfileScreen = ({ navigation }: any) => {
             ? `${(profile as any).village}, ${(profile as any).district}`
             : '123, Market Road, Sector 4, New Delhi - 110001',
         kycStatus: (profile as any)?.kycStatus || 'Verified',
-        avatar: profile?.avatarUrl || 'https://randomuser.me/api/portraits/men/32.jpg', // Placeholder
-    }), [profile]);
+        avatar: avatarUrl || `https://randomuser.me/api/portraits/men/${parseInt(profile?.mobile?.slice(-2) || '32') % 100}.jpg`, // Placeholder
+    }), [profile, avatarUrl]);
 
         const renderInfoRow = ({ icon, label, value, isStatus }: InfoRowProps) => (
             <View style={styles.infoRow}>
