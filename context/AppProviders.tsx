@@ -11,7 +11,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { getPaperTheme } from '@/constants/theme';
 import { useAppTheme } from '@/hooks/use-app-theme';
-import LocalizeProvider from '@/i18n/LocalizeProvider';
+import LocalizeProvider from '@/src/i18n/LocalizeProvider';
 
 const queryClient = new QueryClient({
   defaultOptions: {

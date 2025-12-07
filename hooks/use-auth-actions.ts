@@ -51,15 +51,15 @@ const resolveProfile = async (mobile: string): Promise<UserProfile> => {
     throw new Error('Please provide a valid mobile number.');
   }
   
-  // 1. Check Static (Legacy/Dev)
-  if (staticProfiles[normalized]) {
-    return staticProfiles[normalized];
-  }
-
-  // 2. Check Beneficiary DB
+  // 1. Check Beneficiary DB (Prioritize DB over static for beneficiaries)
   const beneficiaryProfile = await beneficiaryRepository.getProfileByMobile(normalized);
   if (beneficiaryProfile) {
     return beneficiaryProfile;
+  }
+
+  // 2. Check Static (Legacy/Dev)
+  if (staticProfiles[normalized]) {
+    return staticProfiles[normalized];
   }
 
   // 3. Check Officer DB
