@@ -110,7 +110,7 @@ const AuthNavigator = () => (
 
 const BeneficiaryTabNavigator = () => {
   const theme = useAppTheme();
-  const translateY = 0; // keep tabs stationary; placeholder value prevents undefined ref
+  const [tabsHidden, setTabsHidden] = useState(false);
   const tabScreenOptions = useMemo<BottomTabNavigationOptions>(
     () => ({
       headerShown: false,
@@ -134,6 +134,7 @@ const BeneficiaryTabNavigator = () => {
           paddingBottom: 0,
           paddingTop: 0,
         } as ViewStyle,
+        { transform: [{ translateY: tabsHidden ? 120 : 0 }] },
       ],
       tabBarItemStyle: tabItemStyle,
       tabBarIconStyle: {
@@ -145,40 +146,52 @@ const BeneficiaryTabNavigator = () => {
       tabBarActiveTintColor: theme.mode === 'dark' ? theme.colors.onPrimary : theme.colors.primary,
       tabBarInactiveTintColor: theme.colors.subtext,
     }),
-    [theme]
+    [tabsHidden, theme]
   );
 
   return (
-    <Tab.Navigator screenOptions={tabScreenOptions}>
-      <Tab.Screen
-        name="Home"
-        component={BeneficiaryDashboardScreen}
-        options={{
-          tabBarIcon: ({ color }) => <AppIcon name="home" size={32} color={color} />,
-        }}
-      />
-      <Tab.Screen
-        name="NIDHIMITRA"
-        component={BeneficiaryLoanAssistantScreen}
-        options={{
-          tabBarIcon: ({ color }) => <AppIcon name="robot" size={32} color={color} />,
-        }}
-      />
-      <Tab.Screen
-        name="UploadEvidence"
-        component={UploadEvidenceScreen}
-        options={{
-          tabBarIcon: ({ color }) => <AppIcon name="hand-coin" size={32} color={color} />,
-        }}
-      />
-      <Tab.Screen
-        name="Profile"
-        component={BeneficiaryProfileScreen}
-        options={{
-          tabBarIcon: ({ color }) => <AppIcon name="chart-pie" size={32} color={color} />,
-        }}
-      />
-    </Tab.Navigator>
+    <View style={{ flex: 1 }}>
+      <Tab.Navigator screenOptions={tabScreenOptions}>
+        <Tab.Screen
+          name="Home"
+          component={BeneficiaryDashboardScreen}
+          options={{
+            tabBarIcon: ({ color }) => <AppIcon name="home" size={32} color={color} />,
+          }}
+        />
+        <Tab.Screen
+          name="NIDHIMITRA"
+          component={BeneficiaryLoanAssistantScreen}
+          options={{
+            tabBarIcon: ({ color }) => <AppIcon name="robot" size={32} color={color} />,
+          }}
+        />
+        <Tab.Screen
+          name="UploadEvidence"
+          component={UploadEvidenceScreen}
+          options={{
+            tabBarIcon: ({ color }) => <AppIcon name="hand-coin" size={32} color={color} />,
+          }}
+        />
+        <Tab.Screen
+          name="Profile"
+          component={BeneficiaryProfileScreen}
+          options={{
+            tabBarIcon: ({ color }) => <AppIcon name="chart-pie" size={32} color={color} />,
+          }}
+        />
+      </Tab.Navigator>
+
+      <View style={tabToggleStyles.button}>
+        <TouchableOpacity
+          style={tabToggleStyles.touch}
+          onPress={() => setTabsHidden((prev) => !prev)}
+          accessibilityLabel={tabsHidden ? 'Show navigation bar' : 'Hide navigation bar'}
+        >
+          <AppIcon name={tabsHidden ? 'chevron-up' : 'chevron-down'} size={18} color="#111827" />
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 };
 
