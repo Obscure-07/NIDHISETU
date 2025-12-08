@@ -27,6 +27,7 @@ const materializeSubmission = (data: any): SubmissionEvidence => {
     status: data.status ?? 'pending',
     isDraft: data.isDraft,
     offlineId: data.offlineId,
+    requirementId: data.requirementId,
   };
 };
 
@@ -100,6 +101,7 @@ const createSubmission = async (beneficiaryId: string, payload: NewSubmissionPay
     status: payload.status ?? 'submitted',
     isDraft: payload.isDraft ?? false,
     offlineId: payload.offlineId ?? null,
+    requirementId: payload.requirementId ?? null,
   };
 
   const { data, error } = await supabase

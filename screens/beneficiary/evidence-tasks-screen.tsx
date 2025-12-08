@@ -166,7 +166,7 @@ export const EvidenceTasksScreen = () => {
                   </View>
                 </View>
               </View>
-              {submission ? (
+              {submission || req.status === 'submitted' ? (
                 <AppButton
                   label="Pending for Review"
                   tone="secondary"
