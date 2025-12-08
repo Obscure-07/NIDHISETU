@@ -1,15 +1,16 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import type { BottomTabNavigationOptions } from '@react-navigation/bottom-tabs';
 import {
-    createDrawerNavigator,
-    DrawerContentComponentProps,
-    DrawerContentScrollView,
-    DrawerItemList
+  createDrawerNavigator,
+  DrawerContentComponentProps,
+  DrawerContentScrollView,
+  DrawerItemList,
 } from '@react-navigation/drawer';
 import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useMemo, useRef, useState } from 'react';
+import { Alert, Animated, StyleSheet, TouchableOpacity, View, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useMemo } from 'react';
-import { Alert, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useT } from 'lingo.dev/react';
 
 import { AppIcon } from '@/components/atoms/app-icon';
@@ -19,6 +20,8 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 import { MobileInputScreen } from '@/screens/auth/mobile-input-screen';
 import { OnboardingScreen } from '@/screens/auth/onboarding-screen';
 import { OtpVerificationScreen } from '@/screens/auth/otp-verification-screen';
+import { SetPinScreen } from '@/screens/auth/SetPinScreen';
+import { EnterPinScreen } from '@/screens/auth/EnterPinScreen';
 import { WelcomeScreen } from '@/screens/auth/welcome-screen';
 import { ContactOfficerScreen } from '@/screens/beneficiary/contact-officer-screen';
 import { BeneficiaryDashboardScreen } from '@/screens/beneficiary/dashboard-screen';
@@ -62,59 +65,90 @@ const OfficerStack = createNativeStackNavigator<OfficerStackParamList>();
 const ReviewerStack = createNativeStackNavigator<ReviewerStackParamList>();
 const Tab = createBottomTabNavigator();
 
+const tabItemStyle: ViewStyle = {
+  height: 70,
+  padding: 0,
+  justifyContent: 'center',
+  alignItems: 'center',
+};
+
+const tabToggleStyles = StyleSheet.create({
+  button: {
+    position: 'absolute',
+    left: 24,
+    bottom: 8,
+    zIndex: 2000,
+  },
+  touch: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ffffffee',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 4,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#e5e7eb',
+  },
+});
+
 const AuthNavigator = () => (
   <AuthStack.Navigator screenOptions={{ headerShown: false }}>
     <AuthStack.Screen name="Welcome" component={WelcomeScreen} />
     <AuthStack.Screen name="MobileInput" component={MobileInputScreen} />
     <AuthStack.Screen name="OtpVerification" component={OtpVerificationScreen} />
+    <AuthStack.Screen name="SetPin" component={SetPinScreen} />
+    <AuthStack.Screen name="EnterPin" component={EnterPinScreen} />
     <AuthStack.Screen name="Onboarding" component={OnboardingScreen} />
   </AuthStack.Navigator>
 );
 
 const BeneficiaryTabNavigator = () => {
   const theme = useAppTheme();
-
-  const tabScreenOptions = useMemo(
+  const tabScreenOptions = useMemo<BottomTabNavigationOptions>(
     () => ({
       headerShown: false,
-      tabBarStyle: {
-        position: 'absolute',
-        bottom: 20,
-        left: 20,
-        right: 20,
-        elevation: theme.mode === 'dark' ? 0 : 5,
-        backgroundColor: theme.colors.surface,
-        borderRadius: 35,
-        height: 70,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: theme.mode === 'dark' ? 0.35 : 0.1,
-        shadowRadius: 10,
-        borderTopWidth: 0,
-        borderWidth: theme.mode === 'dark' ? 1 : 0,
-        borderColor: theme.colors.border,
-        paddingBottom: 0,
-        paddingTop: 0,
-      },
-      tabBarItemStyle: {
-        height: 70,
-        padding: 0,
-        justifyContent: 'center',
-        alignItems: 'center',
-      },
+      tabBarStyle: [
+        {
+          position: 'absolute',
+          bottom: 20,
+          left: 20,
+          right: 20,
+          elevation: theme.mode === 'dark' ? 0 : 5,
+          backgroundColor: theme.colors.surface,
+          borderRadius: 35,
+          height: 70,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: theme.mode === 'dark' ? 0.35 : 0.1,
+          shadowRadius: 10,
+          borderTopWidth: 0,
+          borderWidth: theme.mode === 'dark' ? 1 : 0,
+          borderColor: theme.colors.border,
+          paddingBottom: 0,
+          paddingTop: 0,
+        } as ViewStyle,
+        { transform: [{ translateY }] },
+      ],
+      tabBarItemStyle: tabItemStyle,
       tabBarIconStyle: {
         marginTop: 0,
         marginBottom: 0,
       },
+      sceneContainerStyle: { backgroundColor: theme.colors.background } as ViewStyle,
       tabBarShowLabel: false,
       tabBarActiveTintColor: theme.mode === 'dark' ? theme.colors.onPrimary : theme.colors.primary,
       tabBarInactiveTintColor: theme.colors.subtext,
     }),
-    [theme]
+    [theme, translateY]
   );
 
   return (
-    <Tab.Navigator screenOptions={tabScreenOptions} sceneContainerStyle={{ backgroundColor: theme.colors.background }}>
+    <Tab.Navigator screenOptions={tabScreenOptions}>
       <Tab.Screen
         name="Home"
         component={BeneficiaryDashboardScreen}
@@ -161,25 +195,53 @@ const BeneficiaryDrawerNavigator = () => {
   const profile = useAuthStore((state) => state.profile);
   const logout = useAuthStore((state) => state.actions.logout);
   const t = useT();
+  const drawerPalette = useMemo(
+    () =>
+      theme.mode === 'dark'
+        ? {
+            headerStart: '#0B1724',
+            headerEnd: '#12324A',
+            background: theme.colors.surface,
+            border: theme.colors.border,
+            icon: theme.colors.onPrimary,
+            accent: 'rgba(255,255,255,0.04)',
+            inactive: theme.colors.subtext,
+          }
+        : {
+            headerStart: '#D9FBE5',
+            headerEnd: '#8FE3B6',
+            background: '#F6FFF7',
+            border: '#CFF5DA',
+            icon: '#0F5132',
+            accent: 'rgba(15, 81, 50, 0.08)',
+            inactive: '#5E8F7A',
+          },
+    [theme]
+  );
 
   return (
     <BeneficiaryDrawer.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        drawerActiveTintColor: theme.colors.onPrimary,
-        drawerInactiveTintColor: theme.colors.subtext,
-        drawerActiveBackgroundColor: theme.colors.primary,
+        drawerActiveTintColor: drawerPalette.icon,
+        drawerInactiveTintColor: drawerPalette.inactive,
+        drawerActiveBackgroundColor: drawerPalette.accent,
         drawerInactiveBackgroundColor: 'transparent',
         drawerStyle: {
-          backgroundColor: theme.colors.surface,
+          backgroundColor: drawerPalette.background,
           width: '80%',
-          borderRightWidth: theme.mode === 'dark' ? 0 : 1,
-          borderRightColor: theme.colors.border,
+          borderRightWidth: 0,
+          paddingTop: 0,
+          paddingBottom: 12,
+          borderColor: drawerPalette.border,
+          borderRightColor: drawerPalette.border,
         },
-        drawerContentStyle: { backgroundColor: theme.colors.surface },
+        drawerContentStyle: { backgroundColor: drawerPalette.background },
         drawerItemStyle: {
-          borderRadius: theme.radii.lg,
-          marginHorizontal: 12,
+          borderRadius: 14,
+          marginHorizontal: 16,
+          marginVertical: 6,
+          paddingVertical: 6,
         },
         drawerLabelStyle: {
           fontSize: 16,
@@ -200,6 +262,7 @@ const BeneficiaryDrawerNavigator = () => {
           beneficiaryName={profile?.name ?? 'Beneficiary'}
           beneficiaryVillage={profile?.role === 'beneficiary' ? profile.village : undefined}
           onLogout={logout}
+          palette={drawerPalette}
         />
       )}
     >
@@ -362,12 +425,23 @@ type BeneficiaryDrawerContentProps = DrawerContentComponentProps & {
   beneficiaryName: string;
   beneficiaryVillage?: string;
   onLogout: () => void;
+  palette: DrawerPalette;
 };
 
-const BeneficiaryDrawerContent = ({ beneficiaryName, beneficiaryVillage, onLogout, ...props }: BeneficiaryDrawerContentProps) => {
+type DrawerPalette = {
+  headerStart: string;
+  headerEnd: string;
+  background: string;
+  border: string;
+  icon: string;
+  accent: string;
+  inactive: string;
+};
+
+const BeneficiaryDrawerContent = ({ beneficiaryName, beneficiaryVillage, onLogout, palette, ...props }: BeneficiaryDrawerContentProps) => {
   const theme = useAppTheme();
   const t = useT();
-  const styles = useMemo(() => createBeneficiaryDrawerStyles(theme), [theme]);
+  const styles = useMemo(() => createBeneficiaryDrawerStyles(theme, palette), [theme, palette]);
 
   const handleLogout = () => {
     Alert.alert(t('Logout'), t('Are you sure you want to sign out?'), [
@@ -385,23 +459,30 @@ const BeneficiaryDrawerContent = ({ beneficiaryName, beneficiaryVillage, onLogou
 
   return (
     <View style={styles.container}>
-      <View style={styles.profileHeader}>
-        <AppText style={styles.brand}>NIDHISETU</AppText>
-        <AppText style={styles.beneficiaryName} numberOfLines={1}>
-          {beneficiaryName}
-        </AppText>
-        {beneficiaryVillage ? (
-          <AppText style={styles.beneficiaryMeta} numberOfLines={1}>
-            {beneficiaryVillage}
+      <LinearGradient
+        colors={[palette.headerStart, palette.headerEnd]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerGradient}
+      >
+        <View style={styles.profileHeader}>
+          <AppText style={styles.brand}>NIDHISETU</AppText>
+          <AppText style={styles.beneficiaryName} numberOfLines={1}>
+            {beneficiaryName}
           </AppText>
-        ) : null}
-      </View>
+          {beneficiaryVillage ? (
+            <AppText style={styles.beneficiaryMeta} numberOfLines={1}>
+              {beneficiaryVillage}
+            </AppText>
+          ) : null}
+        </View>
+      </LinearGradient>
       <DrawerContentScrollView {...props} contentContainerStyle={styles.drawerScrollContent}>
         <DrawerItemList {...props} />
       </DrawerContentScrollView>
       <View style={styles.logoutSection}>
         <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-          <AppIcon name="power" size={24} color={theme.colors.onSecondary} />
+          <AppIcon name="power" size={24} color={theme.colors.onPrimary} />
         </TouchableOpacity>
       </View>
     </View>
@@ -493,51 +574,69 @@ const OfficerDrawerContent = ({ officerName, officerMobile, onLogout, ...props }
   );
 };
 
-const createBeneficiaryDrawerStyles = (theme: AppTheme) =>
+const createBeneficiaryDrawerStyles = (theme: AppTheme, palette: DrawerPalette) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme.colors.surface,
+      backgroundColor: palette.background,
+      borderTopRightRadius: 32,
+      borderBottomRightRadius: 32,
+      overflow: 'hidden',
+      shadowColor: '#000',
+      shadowOffset: { width: -6, height: 8 },
+      shadowOpacity: 0.08,
+      shadowRadius: 16,
+      elevation: 12,
+      borderRightWidth: StyleSheet.hairlineWidth,
+      borderRightColor: palette.border,
     },
-    profileHeader: {
+    headerGradient: {
       paddingHorizontal: 24,
       paddingTop: 60,
-      paddingBottom: 24,
-      backgroundColor: theme.colors.primary,
-      borderBottomLeftRadius: theme.radii.lg,
-      borderBottomRightRadius: theme.radii.lg,
-      gap: 4,
+      paddingBottom: 32,
+      borderBottomLeftRadius: 32,
+      borderBottomRightRadius: 32,
+    },
+    profileHeader: {
+      gap: 6,
     },
     brand: {
       fontSize: 24,
       fontWeight: 'bold',
-      color: theme.colors.onPrimary,
+      color: palette.icon,
+      letterSpacing: 0.5,
     },
     beneficiaryName: {
       fontSize: 16,
-      fontWeight: '600',
-      color: theme.colors.onPrimary,
+      fontWeight: '500',
+      color: palette.icon,
+      opacity: 0.9,
     },
     beneficiaryMeta: {
       fontSize: 13,
-      color: theme.colors.onPrimary,
-      opacity: 0.85,
+      color: palette.icon,
+      opacity: 0.7,
     },
     drawerScrollContent: {
       paddingTop: 0,
-      backgroundColor: theme.colors.surface,
+      backgroundColor: palette.background,
     },
     logoutSection: {
       paddingHorizontal: 24,
       paddingBottom: 40,
       paddingTop: 12,
-      backgroundColor: theme.colors.surface,
+      backgroundColor: palette.background,
     },
     logoutButton: {
       alignSelf: 'flex-end',
-      backgroundColor: theme.colors.secondary,
-      padding: 12,
+      backgroundColor: theme.colors.primary,
+      padding: 14,
       borderRadius: theme.radii.pill,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.18,
+      shadowRadius: 12,
+      elevation: 6,
     },
   });
 
