@@ -35,6 +35,7 @@ import { NotificationsScreen } from '@/screens/beneficiary/notifications-screen'
 import { PreviousSubmissionsScreen } from '@/screens/beneficiary/previous-submissions-screen';
 import { BeneficiaryProfileScreen } from '@/screens/beneficiary/profile-screen';
 import { SubmissionDetailScreen } from '@/screens/beneficiary/submission-detail-screen';
+import { SubmissionScreen } from '@/screens/beneficiary/submission-screen';
 import { SubsidyCalculatorScreen } from '@/screens/beneficiary/subsidy-calculator-screen';
 import { SyncStatusScreen } from '@/screens/beneficiary/sync-status-screen';
 import { UploadEvidenceScreen } from '@/screens/beneficiary/upload-evidence-screen';
@@ -109,6 +110,7 @@ const AuthNavigator = () => (
 
 const BeneficiaryTabNavigator = () => {
   const theme = useAppTheme();
+  const translateY = 0; // keep tabs stationary; placeholder value prevents undefined ref
   const tabScreenOptions = useMemo<BottomTabNavigationOptions>(
     () => ({
       headerShown: false,
@@ -303,6 +305,7 @@ const BeneficiaryNavigator = () => {
   return (
     <BeneficiaryStack.Navigator screenOptions={{ headerShown: false }}>
       <BeneficiaryStack.Screen name="BeneficiaryRoot" component={BeneficiaryDrawerNavigator} />
+      <BeneficiaryStack.Screen name="Submission" component={SubmissionScreen} />
       <BeneficiaryStack.Screen name="SubmissionDetail" component={SubmissionDetailScreen} />
       <BeneficiaryStack.Screen name="LoanEvidenceCamera" component={LoanEvidenceCameraScreen} />
       <BeneficiaryStack.Screen name="EditProfile" component={EditProfileScreen} />

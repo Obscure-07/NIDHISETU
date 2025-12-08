@@ -318,7 +318,7 @@ export const BeneficiaryDashboardScreen = () => {
                     navigation.navigate('PreviousSubmissions' as never);
                     break;
             case 'uploadEvidence':
-                    navigation.navigate('UploadEvidence' as never);
+                navigation.navigate('Submission' as never);
                     break;
             case 'geoCamera':
                     setUserLocation(null);
