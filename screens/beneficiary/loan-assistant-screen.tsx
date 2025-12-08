@@ -1,4 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+// ------------------------------------------------------------
+// BeneficiaryLoanAssistantScreen.tsx
+// Updated with Groq Whisper + m4a audio recording
+// ------------------------------------------------------------
+
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
   KeyboardAvoidingView,
@@ -9,44 +14,53 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from 'react-native';
-import Markdown from 'react-native-markdown-display';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
+  Alert,
+} from "react-native";
+import Markdown from "react-native-markdown-display";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 
-import { AppIcon } from '@/components/atoms/app-icon';
-import { AppText } from '@/components/atoms/app-text';
-import type { AppTheme } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
-import { useBeneficiaryData } from '@/hooks/use-beneficiary-data';
+import { AppIcon } from "@/components/atoms/app-icon";
+import { AppText } from "@/components/atoms/app-text";
+import type { AppTheme } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
+import { useBeneficiaryData } from "@/hooks/use-beneficiary-data";
+
 import {
   loanAssistantClient,
   type LoanAssistantMessage,
   type LoanContext,
-} from '@/services/ai/loanAssistant';
+} from "@/services/ai/loanAssistant";
 
+import * as FileSystem from "expo-file-system";
+import { Audio } from "expo-av";
+import Constants from "expo-constants";
+
+// ------------------------------------------------------------
+// QUICK PROMPTS
+// ------------------------------------------------------------
 const QUICK_PROMPTS = [
-  'What are the next steps in my loan?',
-  'How do I upload missing documents?',
-  'When will I get the subsidy?',
-  'Explain my repayment schedule.',
-  'Can I update my bank details?',
+  "What are the next steps in my loan?",
+  "How do I upload missing documents?",
+  "When will I get the subsidy?",
+  "Explain my repayment schedule.",
+  "Can I update my bank details?",
 ];
 
+// ------------------------------------------------------------
+// Typing Indicator
+// ------------------------------------------------------------
 const TypingIndicator = ({ theme }: { theme: AppTheme }) => {
   const pulse = useRef(new Animated.Value(0.3)).current;
 
   useEffect(() => {
-    const loop = Animated.loop(
+    Animated.loop(
       Animated.sequence([
         Animated.timing(pulse, { toValue: 1, duration: 500, useNativeDriver: true }),
         Animated.timing(pulse, { toValue: 0.3, duration: 500, useNativeDriver: true }),
       ])
-    );
-
-    loop.start();
-    return () => loop.stop();
-  }, [pulse]);
+    ).start();
+  }, []);
 
   return (
     <View style={typingStyles.container}>
@@ -69,10 +83,13 @@ const TypingIndicator = ({ theme }: { theme: AppTheme }) => {
 
 const formatNow = () =>
   new Date().toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit',
+    hour: "2-digit",
+    minute: "2-digit",
   });
 
+// ------------------------------------------------------------
+// MAIN SCREEN
+// ------------------------------------------------------------
 export const BeneficiaryLoanAssistantScreen = () => {
   const { theme } = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -90,11 +107,18 @@ export const BeneficiaryLoanAssistantScreen = () => {
   );
   const { profile, loan } = useBeneficiaryData();
 
-  const [input, setInput] = useState('');
-  const [messages, setMessages] = useState<LoanAssistantMessage[]>([]);
-  const [isSending, setIsSending] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
+  const [input, setInput] = useState("");
+  const [messages, setMessages] = useState<LoanAssistantMessage[]>([]);
+  const [isSending, setIsSending] = useState(false);
+
+  // Voice States
+  const recordingRef = useRef<Audio.Recording | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+
+  // Loan context
   const context = useMemo<LoanContext>(
     () => ({
       beneficiaryName: profile?.name,
@@ -107,39 +131,190 @@ export const BeneficiaryLoanAssistantScreen = () => {
   useEffect(() => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     scrollViewRef.current?.scrollToEnd({ animated: true });
-  }, [messages.length, isSending]);
+  }, [messages.length]);
 
-  const handleSend = async (text: string) => {
-    const trimmed = text.trim();
-    if (!trimmed || isSending) {
-      return;
-    }
+  // ------------------------------------------------------------
+  // AUDIO RECORDING
+  // ------------------------------------------------------------
+  const requestMicPermission = async () => {
+    const { status } = await Audio.requestPermissionsAsync();
+    return status === "granted";
+  };
 
-    const userMessage: LoanAssistantMessage = { role: 'user', content: trimmed };
-    const nextMessages = [...messages, userMessage];
-
-    setMessages(nextMessages);
-    setInput('');
-    setIsSending(true);
-
+  const startRecording = async () => {
     try {
-      const reply = await loanAssistantClient.sendMessage(nextMessages, context);
-      const botMessage: LoanAssistantMessage = { role: 'assistant', content: reply };
-      setMessages((prev) => [...prev, botMessage]);
-    } catch (error) {
-      console.error('Loan assistant error', error);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: 'assistant',
-          content: 'Sorry, I could not respond right now. Please try again.',
+      const granted = await requestMicPermission();
+      if (!granted) {
+        Alert.alert("Permission Required", "Microphone access is required for voice input.");
+        return;
+      }
+
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+
+      const recording = new Audio.Recording();
+
+      await recording.prepareToRecordAsync({
+        android: {
+          extension: ".m4a",
+          outputFormat: Audio.AndroidOutputFormat.MPEG_4,
+          audioEncoder: Audio.AndroidAudioEncoder.AAC,
+          sampleRate: 44100,
+          numberOfChannels: 1,
+          bitRate: 128000,
         },
-      ]);
-    } finally {
-      setIsSending(false);
+        ios: {
+          extension: ".m4a",
+          audioQuality: Audio.IOSAudioQuality.MAX,
+          sampleRate: 44100,
+          numberOfChannels: 1,
+          bitRate: 128000,
+          outputFormat: Audio.IOSOutputFormat.MPEG4AAC,
+        },
+        web: {
+          mimeType: "audio/webm",
+          bitsPerSecond: 128000,
+        },
+      });
+
+      await recording.startAsync();
+
+      recordingRef.current = recording;
+      setIsRecording(true);
+
+      console.log("Recording started");
+    } catch (e) {
+      console.error("startRecording error:", e);
     }
   };
 
+  const stopRecording = async () => {
+    try {
+      const recording = recordingRef.current;
+      if (!recording) return null;
+
+      await recording.stopAndUnloadAsync();
+      const uri = recording.getURI();
+      recordingRef.current = null;
+      setIsRecording(false);
+
+      console.log("Recording stopped:", uri);
+      return uri;
+    } catch (e) {
+      console.error("stopRecording error:", e);
+      setIsRecording(false);
+      return null;
+    }
+  };
+
+  // ------------------------------------------------------------
+  // GROQ WHISPER TRANSCRIPTION
+  // ------------------------------------------------------------
+  const transcribeWithGroq = async (fileUri: string) => {
+    try {
+      setIsTranscribing(true);
+
+      const apiKey =
+        Constants.expoConfig?.extra?.GROQ_API_KEY ||
+        process.env.EXPO_PUBLIC_GROQ_API_KEY;
+
+      if (!apiKey) {
+        Alert.alert("Missing API Key", "Groq API key not found!");
+        setIsTranscribing(false);
+        return "";
+      }
+
+      const filename = fileUri.split("/").pop() ?? "audio.m4a";
+
+      const formData = new FormData();
+      // @ts-ignore
+      formData.append("file", {
+        uri: fileUri,
+        name: filename,
+        type: "audio/m4a",
+      });
+
+      formData.append("model", "whisper-large-v3-turbo");
+
+      const res = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: formData,
+      });
+
+      const text = await res.text();
+      console.log("Groq Raw Response:", text);
+
+      if (!res.ok) {
+        console.log("Groq Whisper Error:", res.status, text);
+        setIsTranscribing(false);
+        return "";
+      }
+
+      const json = JSON.parse(text);
+      setIsTranscribing(false);
+      return json.text || "";
+    } catch (err) {
+      console.error("Groq transcription error:", err);
+      setIsTranscribing(false);
+      return "";
+    }
+  };
+
+  // ------------------------------------------------------------
+  // MIC BUTTON HANDLER
+  // ------------------------------------------------------------
+  const onMicPress = async () => {
+    if (isRecording) {
+      const uri = await stopRecording();
+      if (!uri) return;
+
+      const text = await transcribeWithGroq(uri);
+      if (text) setInput(text);
+
+      try {
+        await FileSystem.deleteAsync(uri, { idempotent: true });
+      } catch {}
+    } else {
+      startRecording();
+    }
+  };
+
+  // ------------------------------------------------------------
+  // SEND MESSAGE
+  // ------------------------------------------------------------
+  const handleSend = async (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+
+    setMessages((prev) => [...prev, { role: "user", content: trimmed }]);
+    setInput("");
+    setIsSending(true);
+
+    try {
+      const reply = await loanAssistantClient.sendMessage(
+        [...messages, { role: "user", content: trimmed }],
+        context
+      );
+
+      setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: "Sorry, please try again." },
+      ]);
+    }
+
+    setIsSending(false);
+  };
+
+  // ------------------------------------------------------------
+  // WELCOME STATE
+  // ------------------------------------------------------------
   const renderWelcomeState = () => (
     <View style={styles.welcomeContainer}>
       <View style={styles.heroCard}>
@@ -188,12 +363,14 @@ export const BeneficiaryLoanAssistantScreen = () => {
     </View>
   );
 
+  // ------------------------------------------------------------
+  // RENDER UI
+  // ------------------------------------------------------------
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={130}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <LinearGradient
           colors={gradients.page}
@@ -274,11 +451,19 @@ export const BeneficiaryLoanAssistantScreen = () => {
                       <TypingIndicator theme={theme} />
                     </View>
                   )}
+                  <AppText style={styles.timestamp}>{formatNow()}</AppText>
                 </View>
-              )}
-            </ScrollView>
-          </View>
+              ))
+            )}
 
+            {isSending && (
+              <View style={[styles.messageBubble, styles.botBubble]}>
+                <TypingIndicator theme={theme} />
+              </View>
+            )}
+          </ScrollView>
+
+          {/* INPUT AREA */}
           <View style={styles.inputWrapper}>
             <LinearGradient
               colors={gradients.input}
@@ -295,20 +480,36 @@ export const BeneficiaryLoanAssistantScreen = () => {
               <TextInput
                 style={styles.input}
                 placeholder="Ask anything..."
-                placeholderTextColor={theme.colors.subtext}
                 value={input}
                 onChangeText={setInput}
-                returnKeyType="send"
                 onSubmitEditing={() => handleSend(input)}
               />
-              <TouchableOpacity style={styles.micButton}>
-                <AppIcon name="microphone" size={22} color={theme.colors.primary} />
+
+              <TouchableOpacity
+                style={[
+                  styles.micButton,
+                  { backgroundColor: isRecording ? "#fee2e2" : "#f1f5f9" },
+                ]}
+                onPress={onMicPress}
+              >
+                <AppIcon
+                  name={
+                    isRecording
+                      ? "microphone"
+                      : isTranscribing
+                      ? "download"
+                      : "microphone-outline"
+                  }
+                  size={22}
+                  color={isRecording ? "red" : theme.colors.primary}
+                />
               </TouchableOpacity>
+
               <TouchableOpacity
                 style={[styles.sendButton, { backgroundColor: theme.colors.primary }]}
                 onPress={() => handleSend(input)}
               >
-                <AppIcon name="send" size={18} color={theme.colors.onPrimary} />
+                <AppIcon name="send" size={18} color="#fff" />
               </TouchableOpacity>
             </View>
           </View>
@@ -391,13 +592,12 @@ const createStyles = (theme: AppTheme) => {
       flex: 1,
       backgroundColor: theme.colors.surface,
     },
+
     scrollContent: {
-      flexGrow: 1,
+      padding: 20,
       paddingBottom: 120,
     },
-    messagesWrapper: {
-      flex: 1,
-    },
+
     welcomeContainer: {
       alignItems: 'center',
       paddingTop: 32,
@@ -439,9 +639,11 @@ const createStyles = (theme: AppTheme) => {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    heroTextBlock: {
-      flex: 1,
-      gap: 4,
+
+    chip: {
+      padding: 10,
+      backgroundColor: "#eef2ff",
+      borderRadius: 14,
     },
     heroTitle: {
       fontSize: 18,
@@ -452,13 +654,11 @@ const createStyles = (theme: AppTheme) => {
       fontSize: 14,
       color: theme.colors.subtext,
     },
-    welcomeBubble: {
-      flexDirection: 'row',
-      padding: 16,
-      borderRadius: 18,
-      alignItems: 'center',
-      width: '100%',
-      gap: 8,
+
+    botBubble: {
+      alignSelf: "flex-start",
+      backgroundColor: "#f1f5f9",
+      borderColor: "#cbd5e1",
       borderWidth: 1,
       borderColor: theme.colors.border,
       backgroundColor: theme.colors.surface,
@@ -475,6 +675,8 @@ const createStyles = (theme: AppTheme) => {
     suggestionsContainer: {
       width: '100%',
       marginTop: 6,
+      fontSize: 10,
+      color: "#64748b",
     },
     suggestionHeader: {
       flexDirection: 'row',
@@ -503,7 +705,8 @@ const createStyles = (theme: AppTheme) => {
       elevation: 6,
     },
     inputWrapper: {
-      position: 'absolute',
+      position: "absolute",
+      bottom: 0,
       left: 0,
       right: 0,
       bottom: 0,
@@ -521,6 +724,7 @@ const createStyles = (theme: AppTheme) => {
       borderRadius: 28,
       opacity: isDark ? 0.7 : 0.9,
     },
+
     inputContainer: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -538,6 +742,7 @@ const createStyles = (theme: AppTheme) => {
       marginHorizontal: 16,
       backgroundColor: theme.colors.surface,
     },
+
     input: {
       flex: 1,
       fontSize: 16,
@@ -571,6 +776,7 @@ const createStyles = (theme: AppTheme) => {
       alignItems: 'center',
       justifyContent: 'center',
     },
+
     micButton: {
       width: 40,
       height: 40,
@@ -579,9 +785,10 @@ const createStyles = (theme: AppTheme) => {
       justifyContent: 'center',
       backgroundColor: theme.colors.surfaceVariant,
     },
+
     sendButton: {
-      width: 44,
-      height: 44,
+      width: 45,
+      height: 45,
       borderRadius: 22,
       alignItems: 'center',
       justifyContent: 'center',
@@ -684,14 +891,8 @@ const markdownStyles = (theme: AppTheme) =>
 export default BeneficiaryLoanAssistantScreen;
 
 const typingStyles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    gap: 6,
-    alignItems: 'center',
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
+  container: { flexDirection: "row", gap: 6, alignItems: "center" },
+  dot: { width: 8, height: 8, borderRadius: 4 },
 });
+
+export default BeneficiaryLoanAssistantScreen;
