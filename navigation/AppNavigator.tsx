@@ -132,7 +132,6 @@ const BeneficiaryTabNavigator = () => {
           paddingBottom: 0,
           paddingTop: 0,
         } as ViewStyle,
-        { transform: [{ translateY }] },
       ],
       tabBarItemStyle: tabItemStyle,
       tabBarIconStyle: {
@@ -144,7 +143,7 @@ const BeneficiaryTabNavigator = () => {
       tabBarActiveTintColor: theme.mode === 'dark' ? theme.colors.onPrimary : theme.colors.primary,
       tabBarInactiveTintColor: theme.colors.subtext,
     }),
-    [theme, translateY]
+    [theme]
   );
 
   return (
