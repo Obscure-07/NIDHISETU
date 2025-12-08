@@ -1,15 +1,15 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import type { BottomTabNavigationOptions } from '@react-navigation/bottom-tabs';
 import {
-    createDrawerNavigator,
-    DrawerContentComponentProps,
-    DrawerContentScrollView,
-    DrawerItemList
+  createDrawerNavigator,
+  DrawerContentComponentProps,
+  DrawerContentScrollView,
+  DrawerItemList,
 } from '@react-navigation/drawer';
 import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useMemo } from 'react';
-import { Alert, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useMemo, useRef, useState } from 'react';
+import { Alert, Animated, StyleSheet, TouchableOpacity, View, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useT } from 'lingo.dev/react';
 
@@ -65,6 +65,37 @@ const OfficerStack = createNativeStackNavigator<OfficerStackParamList>();
 const ReviewerStack = createNativeStackNavigator<ReviewerStackParamList>();
 const Tab = createBottomTabNavigator();
 
+const tabItemStyle: ViewStyle = {
+  height: 70,
+  padding: 0,
+  justifyContent: 'center',
+  alignItems: 'center',
+};
+
+const tabToggleStyles = StyleSheet.create({
+  button: {
+    position: 'absolute',
+    left: 24,
+    bottom: 8,
+    zIndex: 2000,
+  },
+  touch: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ffffffee',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 4,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#e5e7eb',
+  },
+});
+
 const AuthNavigator = () => (
   <AuthStack.Navigator screenOptions={{ headerShown: false }}>
     <AuthStack.Screen name="Welcome" component={WelcomeScreen} />
@@ -81,40 +112,39 @@ const BeneficiaryTabNavigator = () => {
   const tabScreenOptions = useMemo<BottomTabNavigationOptions>(
     () => ({
       headerShown: false,
-      tabBarStyle: {
-        position: 'absolute',
-        bottom: 20,
-        left: 20,
-        right: 20,
-        elevation: theme.mode === 'dark' ? 0 : 5,
-        backgroundColor: theme.colors.surface,
-        borderRadius: 35,
-        height: 70,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: theme.mode === 'dark' ? 0.35 : 0.1,
-        shadowRadius: 10,
-        borderTopWidth: 0,
-        borderWidth: theme.mode === 'dark' ? 1 : 0,
-        borderColor: theme.colors.border,
-        paddingBottom: 0,
-        paddingTop: 0,
-      },
-      tabBarItemStyle: {
-        height: 70,
-        padding: 0,
-        justifyContent: 'center',
-        alignItems: 'center',
-      },
+      tabBarStyle: [
+        {
+          position: 'absolute',
+          bottom: 20,
+          left: 20,
+          right: 20,
+          elevation: theme.mode === 'dark' ? 0 : 5,
+          backgroundColor: theme.colors.surface,
+          borderRadius: 35,
+          height: 70,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: theme.mode === 'dark' ? 0.35 : 0.1,
+          shadowRadius: 10,
+          borderTopWidth: 0,
+          borderWidth: theme.mode === 'dark' ? 1 : 0,
+          borderColor: theme.colors.border,
+          paddingBottom: 0,
+          paddingTop: 0,
+        } as ViewStyle,
+        { transform: [{ translateY }] },
+      ],
+      tabBarItemStyle: tabItemStyle,
       tabBarIconStyle: {
         marginTop: 0,
         marginBottom: 0,
       },
+      sceneContainerStyle: { backgroundColor: theme.colors.background } as ViewStyle,
       tabBarShowLabel: false,
       tabBarActiveTintColor: theme.mode === 'dark' ? theme.colors.onPrimary : theme.colors.primary,
       tabBarInactiveTintColor: theme.colors.subtext,
     }),
-    [theme]
+    [theme, translateY]
   );
 
   return (
@@ -166,16 +196,27 @@ const BeneficiaryDrawerNavigator = () => {
   const logout = useAuthStore((state) => state.actions.logout);
   const t = useT();
   const drawerPalette = useMemo(
-    () => ({
-      headerStart: '#D9FBE5',
-      headerEnd: '#8FE3B6',
-      background: '#F6FFF7',
-      border: '#CFF5DA',
-      icon: '#0F5132',
-      accent: 'rgba(15, 81, 50, 0.08)',
-      inactive: '#5E8F7A',
-    }),
-    []
+    () =>
+      theme.mode === 'dark'
+        ? {
+            headerStart: '#0B1724',
+            headerEnd: '#12324A',
+            background: theme.colors.surface,
+            border: theme.colors.border,
+            icon: theme.colors.onPrimary,
+            accent: 'rgba(255,255,255,0.04)',
+            inactive: theme.colors.subtext,
+          }
+        : {
+            headerStart: '#D9FBE5',
+            headerEnd: '#8FE3B6',
+            background: '#F6FFF7',
+            border: '#CFF5DA',
+            icon: '#0F5132',
+            accent: 'rgba(15, 81, 50, 0.08)',
+            inactive: '#5E8F7A',
+          },
+    [theme]
   );
 
   return (
@@ -192,6 +233,8 @@ const BeneficiaryDrawerNavigator = () => {
           borderRightWidth: 0,
           paddingTop: 0,
           paddingBottom: 12,
+          borderColor: drawerPalette.border,
+          borderRightColor: drawerPalette.border,
         },
         drawerContentStyle: { backgroundColor: drawerPalette.background },
         drawerItemStyle: {
@@ -439,7 +482,7 @@ const BeneficiaryDrawerContent = ({ beneficiaryName, beneficiaryVillage, onLogou
       </DrawerContentScrollView>
       <View style={styles.logoutSection}>
         <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-          <AppIcon name="power" size={24} color="#FFFFFF" />
+          <AppIcon name="power" size={24} color={theme.colors.onPrimary} />
         </TouchableOpacity>
       </View>
     </View>
@@ -586,7 +629,7 @@ const createBeneficiaryDrawerStyles = (theme: AppTheme, palette: DrawerPalette) 
     },
     logoutButton: {
       alignSelf: 'flex-end',
-      backgroundColor: palette.icon,
+      backgroundColor: theme.colors.primary,
       padding: 14,
       borderRadius: theme.radii.pill,
       shadowColor: '#000',
