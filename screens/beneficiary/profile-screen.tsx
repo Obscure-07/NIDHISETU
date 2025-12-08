@@ -21,14 +21,11 @@ const { width } = Dimensions.get("window");
 
 export const BeneficiaryProfileScreen = ({ navigation }: any) => {
   const profile = useAuthStore((state) => state.profile);
-  const t = useT();
-  const theme = useAppTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
-  const gradientColors = useMemo(
-    () => [theme.colors.gradientStart, theme.colors.gradientEnd] as const,
-    [theme]
-  );
-  const waveFill = theme.colors.background;
+    const t = useT();
+    const theme = useAppTheme();
+    const styles = useMemo(() => createStyles(theme), [theme]);
+    const gradientColors = useMemo(() => [theme.colors.gradientStart, theme.colors.gradientEnd], [theme]);
+    const waveFill = theme.colors.background;
 
   // Force refresh image by appending timestamp if avatarUrl exists
   const avatarUrl = useMemo(() => {
