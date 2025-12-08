@@ -110,6 +110,7 @@ const AuthNavigator = () => (
 
 const BeneficiaryTabNavigator = () => {
   const theme = useAppTheme();
+  const translateY = 0; // keep tabs stationary; placeholder value prevents undefined ref
   const tabScreenOptions = useMemo<BottomTabNavigationOptions>(
     () => ({
       headerShown: false,
